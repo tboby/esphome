@@ -919,7 +919,6 @@ void VoiceAssistant::timer_tick_() {
   this->timer_tick_trigger_.trigger(this->timers_);
 }
 
-
 void VoiceAssistant::on_alarm_event(const api::VoiceAssistantAlarmEventResponse &msg) {
   // Find existing alarm or add a new one
   auto it = this->alarms_.begin();
@@ -933,8 +932,8 @@ void VoiceAssistant::on_alarm_event(const api::VoiceAssistantAlarmEventResponse 
   }
   it->id = msg.alarm_id;
   it->name = msg.name;
-  it->total_seconds = msg.total_seconds;
-  it->seconds_left = msg.seconds_left;
+  it->scheduled_epoch_s = msg.scheduled_epoch_s;
+  it->seconds_until_ring = msg.seconds_until_ring;
   it->is_active = msg.is_active;
 
   char alarm_buf[Alarm::TO_STR_BUFFER_SIZE];
@@ -972,13 +971,12 @@ void VoiceAssistant::on_alarm_event(const api::VoiceAssistantAlarmEventResponse 
 
 void VoiceAssistant::alarm_tick_() {
   for (auto &alarm : this->alarms_) {
-    if (alarm.is_active && alarm.seconds_left > 0) {
-      alarm.seconds_left--;
+    if (alarm.is_active && alarm.seconds_until_ring > 0) {
+      alarm.seconds_until_ring--;
     }
   }
   this->alarm_tick_trigger_.trigger(this->alarms_);
 }
-
 
 void VoiceAssistant::on_announce(const api::VoiceAssistantAnnounceRequest &msg) {
 #ifdef USE_MEDIA_PLAYER

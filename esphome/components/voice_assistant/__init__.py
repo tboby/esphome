@@ -81,6 +81,7 @@ ConnectedCondition = voice_assistant_ns.class_(
 Timer = voice_assistant_ns.struct("Timer")
 Alarm = voice_assistant_ns.struct("Alarm")
 
+
 def tts_stream_validate(config):
     if CONF_SPEAKER not in config and (
         CONF_ON_TTS_STREAM_START in config or CONF_ON_TTS_STREAM_END in config
@@ -180,13 +181,17 @@ CONFIG_SCHEMA = cv.All(
                 single=True
             ),
             cv.Optional(CONF_ON_ALARM_UPDATED): automation.validate_automation(
-                single=True            ),
+                single=True
+            ),
             cv.Optional(CONF_ON_ALARM_CANCELLED): automation.validate_automation(
-                single=True           ),
+                single=True
+            ),
             cv.Optional(CONF_ON_ALARM_FINISHED): automation.validate_automation(
-                single=True            ),
+                single=True
+            ),
             cv.Optional(CONF_ON_ALARM_TICK): automation.validate_automation(
-                single=True            ),
+                single=True
+            ),
         }
     ).extend(cv.COMPONENT_SCHEMA),
     tts_stream_validate,
@@ -403,7 +408,7 @@ async def to_code(config):
     if on_alarm_started := config.get(CONF_ON_ALARM_STARTED):
         await automation.build_automation(
             var.get_alarm_started_trigger(),
-            [(Timer, "timer")],
+            [(Alarm, "alarm")],
             on_alarm_started,
         )
         has_alarms = True
@@ -411,7 +416,7 @@ async def to_code(config):
     if on_alarm_updated := config.get(CONF_ON_ALARM_UPDATED):
         await automation.build_automation(
             var.get_alarm_updated_trigger(),
-            [(Timer, "timer")],
+            [(Alarm, "alarm")],
             on_alarm_updated,
         )
         has_alarms = True
@@ -419,7 +424,7 @@ async def to_code(config):
     if on_alarm_cancelled := config.get(CONF_ON_ALARM_CANCELLED):
         await automation.build_automation(
             var.get_alarm_cancelled_trigger(),
-            [(Timer, "timer")],
+            [(Alarm, "alarm")],
             on_alarm_cancelled,
         )
         has_alarms = True
@@ -427,7 +432,7 @@ async def to_code(config):
     if on_alarm_finished := config.get(CONF_ON_ALARM_FINISHED):
         await automation.build_automation(
             var.get_alarm_finished_trigger(),
-            [(Timer, "timer")],
+            [(Alarm, "alarm")],
             on_alarm_finished,
         )
         has_alarms = True
@@ -437,8 +442,8 @@ async def to_code(config):
             var.get_alarm_tick_trigger(),
             [
                 (
-                    cg.std_vector.template(Timer).operator("const").operator("ref"),
-                    "timers",
+                    cg.std_vector.template(Alarm).operator("const").operator("ref"),
+                    "alarms",
                 )
             ],
             on_alarm_tick,

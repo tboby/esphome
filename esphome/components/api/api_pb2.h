@@ -2406,7 +2406,7 @@ class VoiceAssistantAlarmEventResponse final : public ProtoDecodableMessage {
   enums::VoiceAssistantAlarmEvent event_type{};
   StringRef alarm_id{};
   StringRef name{};
-  uint32_t scheduled_epoch_seconds{0};
+  uint32_t scheduled_epoch_s{0};
   uint32_t seconds_until_ring{0};
   bool is_active{false};
 #ifdef HAS_PROTO_MESSAGE_DUMP

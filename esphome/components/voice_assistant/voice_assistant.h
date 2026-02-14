@@ -101,12 +101,12 @@ struct Alarm {
   /// Format to buffer, returns pointer to buffer (may truncate long names)
   const char *to_str(std::span<char, TO_STR_BUFFER_SIZE> buffer) const {
     snprintf(buffer.data(), buffer.size(),
-             "Timer(id=%s, name=%s, total_seconds=%" PRIu32 ", seconds_left=%" PRIu32 ", is_active=%s)",
-             this->id.c_str(), this->name.c_str(), this->total_seconds, this->seconds_left, YESNO(this->is_active));
+             "Alarm(id=%s, name=%s, scheduled_epoch_s=%" PRIu32 ", seconds_until_ring=%" PRIu32 ", is_active=%s)",
+             this->id.c_str(), this->name.c_str(), this->scheduled_epoch_s, this->seconds_until_ring,
+             YESNO(this->is_active));
     return buffer.data();
   }
 };
-
 
 struct WakeWord {
   std::string id;
@@ -261,7 +261,6 @@ class VoiceAssistant : public Component {
   Trigger<const std::vector<Alarm> &> *get_alarm_tick_trigger() { return &this->alarm_tick_trigger_; }
   void set_has_alarms(bool has_alarms) { this->has_alarms_ = has_alarms; }
   const std::vector<Alarm> &get_alarms() const { return this->alarms_; }
-
 
  protected:
   bool allocate_buffers_();
