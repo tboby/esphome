@@ -258,6 +258,12 @@ enum VoiceAssistantTimerEvent : uint32_t {
   VOICE_ASSISTANT_TIMER_CANCELLED = 2,
   VOICE_ASSISTANT_TIMER_FINISHED = 3,
 };
+enum VoiceAssistantAlarmEvent : uint32_t {
+  VOICE_ASSISTANT_ALARM_STARTED = 0,
+  VOICE_ASSISTANT_ALARM_UPDATED = 1,
+  VOICE_ASSISTANT_ALARM_CANCELLED = 2,
+  VOICE_ASSISTANT_ALARM_FINISHED = 3,
+};
 #endif
 #ifdef USE_ALARM_CONTROL_PANEL
 enum AlarmControlPanelState : uint32_t {
@@ -2470,6 +2476,27 @@ class VoiceAssistantTimerEventResponse final : public ProtoDecodableMessage {
   StringRef name{};
   uint32_t total_seconds{0};
   uint32_t seconds_left{0};
+  bool is_active{false};
+#ifdef HAS_PROTO_MESSAGE_DUMP
+  const char *dump_to(DumpBuffer &out) const override;
+#endif
+
+ protected:
+  bool decode_length(uint32_t field_id, ProtoLengthDelimited value) override;
+  bool decode_varint(uint32_t field_id, ProtoVarInt value) override;
+};
+class VoiceAssistantAlarmEventResponse final : public ProtoDecodableMessage {
+ public:
+  static constexpr uint8_t MESSAGE_TYPE = 138;
+  static constexpr uint8_t ESTIMATED_SIZE = 30;
+#ifdef HAS_PROTO_MESSAGE_DUMP
+  const char *message_name() const override { return "voice_assistant_alarm_event_response"; }
+#endif
+  enums::VoiceAssistantAlarmEvent event_type{};
+  StringRef alarm_id{};
+  StringRef name{};
+  uint32_t scheduled_epoch_seconds{0};
+  uint32_t seconds_until_ring{0};
   bool is_active{false};
 #ifdef HAS_PROTO_MESSAGE_DUMP
   const char *dump_to(DumpBuffer &out) const override;

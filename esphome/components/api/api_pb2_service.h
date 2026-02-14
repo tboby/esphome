@@ -175,6 +175,9 @@ class APIServerConnectionBase : public ProtoService {
   virtual void on_voice_assistant_timer_event_response(const VoiceAssistantTimerEventResponse &value){};
 #endif
 #ifdef USE_VOICE_ASSISTANT
+  virtual void on_voice_assistant_alarm_event_response(const VoiceAssistantAlarmEventResponse &value){};
+#endif
+#ifdef USE_VOICE_ASSISTANT
   virtual void on_voice_assistant_announce_request(const VoiceAssistantAnnounceRequest &value){};
 #endif
 
