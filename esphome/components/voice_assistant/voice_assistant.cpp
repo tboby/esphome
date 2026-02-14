@@ -913,6 +913,67 @@ void VoiceAssistant::timer_tick_() {
   this->timer_tick_trigger_->trigger(res);
 }
 
+
+void VoiceAssistant::on_alarm_event(const api::VoiceAssistantAlarmEventResponse &msg) {
+  // Find existing alarm or add a new one
+  auto it = this->alarms_.begin();
+  for (; it != this->alarms_.end(); ++it) {
+    if (it->id == msg.alarm_id)
+      break;
+  }
+  if (it == this->alarms_.end()) {
+    this->alarms_.push_back({});
+    it = this->alarms_.end() - 1;
+  }
+  it->id = msg.alarm_id;
+  it->name = msg.name;
+  it->total_seconds = msg.total_seconds;
+  it->seconds_left = msg.seconds_left;
+  it->is_active = msg.is_active;
+
+  char alarm_buf[Alarm::TO_STR_BUFFER_SIZE];
+  ESP_LOGD(TAG,
+           "Alarm Event\n"
+           "  Type: %" PRId32 "\n"
+           "  %s",
+           msg.event_type, it->to_str(alarm_buf));
+
+  switch (msg.event_type) {
+    case api::enums::VOICE_ASSISTANT_ALARM_STARTED:
+      this->alarm_started_trigger_.trigger(*it);
+      break;
+    case api::enums::VOICE_ASSISTANT_ALARM_UPDATED:
+      this->alarm_updated_trigger_.trigger(*it);
+      break;
+    case api::enums::VOICE_ASSISTANT_ALARM_CANCELLED:
+      this->alarm_cancelled_trigger_.trigger(*it);
+      this->alarms_.erase(it);
+      break;
+    case api::enums::VOICE_ASSISTANT_ALARM_FINISHED:
+      this->alarm_finished_trigger_.trigger(*it);
+      this->alarms_.erase(it);
+      break;
+  }
+
+  if (this->alarms_.empty()) {
+    this->cancel_interval("alarm-event");
+    this->alarm_tick_running_ = false;
+  } else if (!this->alarm_tick_running_) {
+    this->set_interval("alarm-event", 1000, [this]() { this->alarm_tick_(); });
+    this->alarm_tick_running_ = true;
+  }
+}
+
+void VoiceAssistant::alarm_tick_() {
+  for (auto &alarm : this->alarms_) {
+    if (alarm.is_active && alarm.seconds_left > 0) {
+      alarm.seconds_left--;
+    }
+  }
+  this->alarm_tick_trigger_.trigger(this->alarms_);
+}
+
+
 void VoiceAssistant::on_announce(const api::VoiceAssistantAnnounceRequest &msg) {
 #ifdef USE_MEDIA_PLAYER
   if (this->media_player_ != nullptr) {

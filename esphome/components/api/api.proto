@@ -1959,6 +1959,26 @@ message VoiceAssistantTimerEventResponse {
   bool is_active = 6;
 }
 
+enum VoiceAssistantAlarmEvent {
+  VOICE_ASSISTANT_ALARM_STARTED = 0;
+  VOICE_ASSISTANT_ALARM_UPDATED = 1;
+  VOICE_ASSISTANT_ALARM_CANCELLED = 2;
+  VOICE_ASSISTANT_ALARM_FINISHED = 3;
+}
+
+message VoiceAssistantAlarmEventResponse {
+  option (id) = 138;
+  option (source) = SOURCE_CLIENT;
+  option (ifdef) = "USE_VOICE_ASSISTANT";
+
+  VoiceAssistantAlarmEvent event_type = 1;
+  string alarm_id = 2;
+  string name = 3;
+  uint32 scheduled_epoch_s = 4;
+  uint32 seconds_until_ring = 5;
+  bool is_active = 6;
+}
+
 message VoiceAssistantAnnounceRequest {
   option (id) = 119;
   option (source) = SOURCE_CLIENT;
