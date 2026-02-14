@@ -514,6 +514,17 @@ void APIServerConnectionBase::read_message(uint32_t msg_size, uint32_t msg_type,
       break;
     }
 #endif
+#ifdef USE_VOICE_ASSISTANT
+    case VoiceAssistantAlarmEventResponse::MESSAGE_TYPE: {
+      VoiceAssistantAlarmEventResponse msg;
+      msg.decode(msg_data, msg_size);
+#ifdef HAS_PROTO_MESSAGE_DUMP
+      this->log_receive_message_(LOG_STR("on_voice_assistant_alarm_event_response"), msg);
+#endif
+      this->on_voice_assistant_alarm_event_response(msg);
+      break;
+    }
+#endif
 #ifdef USE_UPDATE
     case UpdateCommandRequest::MESSAGE_TYPE: {
       UpdateCommandRequest msg;

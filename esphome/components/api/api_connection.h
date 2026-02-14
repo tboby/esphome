@@ -157,6 +157,7 @@ class APIConnection final : public APIServerConnectionBase {
   void on_voice_assistant_event_response(const VoiceAssistantEventResponse &msg) override;
   void on_voice_assistant_audio(const VoiceAssistantAudio &msg) override;
   void on_voice_assistant_timer_event_response(const VoiceAssistantTimerEventResponse &msg) override;
+  void on_voice_assistant_alarm_event_response(const VoiceAssistantAlarmEventResponse &msg) override;
   void on_voice_assistant_announce_request(const VoiceAssistantAnnounceRequest &msg) override;
   void on_voice_assistant_configuration_request(const VoiceAssistantConfigurationRequest &msg) override;
   void on_voice_assistant_set_configuration(const VoiceAssistantSetConfiguration &msg) override;

@@ -2558,6 +2558,41 @@ bool VoiceAssistantTimerEventResponse::decode_length(uint32_t field_id, ProtoLen
   }
   return true;
 }
+bool VoiceAssistantAlarmEventResponse::decode_varint(uint32_t field_id, ProtoVarInt value) {
+  switch (field_id) {
+    case 1:
+      this->event_type = static_cast<enums::VoiceAssistantAlarmEvent>(value.as_uint32());
+      break;
+    case 4:
+      this->scheduled_epoch_s = value.as_uint32();
+      break;
+    case 5:
+      this->seconds_until_ring = value.as_uint32();
+      break;
+    case 6:
+      this->is_active = value.as_bool();
+      break;
+    default:
+      return false;
+  }
+  return true;
+}
+bool VoiceAssistantAlarmEventResponse::decode_length(uint32_t field_id, ProtoLengthDelimited value) {
+  switch (field_id) {
+    case 2: {
+      this->alarm_id = StringRef(reinterpret_cast<const char *>(value.data()), value.size());
+      break;
+    }
+    case 3: {
+      this->name = StringRef(reinterpret_cast<const char *>(value.data()), value.size());
+      break;
+    }
+    default:
+      return false;
+  }
+  return true;
+}
+
 bool VoiceAssistantAnnounceRequest::decode_varint(uint32_t field_id, ProtoVarInt value) {
   switch (field_id) {
     case 4:

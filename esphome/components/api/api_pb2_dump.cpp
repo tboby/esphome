@@ -632,6 +632,20 @@ template<> const char *proto_enum_to_string<enums::VoiceAssistantTimerEvent>(enu
       return "UNKNOWN";
   }
 }
+template<> const char *proto_enum_to_string<enums::VoiceAssistantAlarmEvent>(enums::VoiceAssistantAlarmEvent value) {
+  switch (value) {
+    case enums::VOICE_ASSISTANT_ALARM_STARTED:
+      return "VOICE_ASSISTANT_ALARM_STARTED";
+    case enums::VOICE_ASSISTANT_ALARM_UPDATED:
+      return "VOICE_ASSISTANT_ALARM_UPDATED";
+    case enums::VOICE_ASSISTANT_ALARM_CANCELLED:
+      return "VOICE_ASSISTANT_ALARM_CANCELLED";
+    case enums::VOICE_ASSISTANT_ALARM_FINISHED:
+      return "VOICE_ASSISTANT_ALARM_FINISHED";
+    default:
+      return "UNKNOWN";
+  }
+}
 #endif
 #ifdef USE_ALARM_CONTROL_PANEL
 template<> const char *proto_enum_to_string<enums::AlarmControlPanelState>(enums::AlarmControlPanelState value) {
@@ -2030,6 +2044,16 @@ const char *VoiceAssistantTimerEventResponse::dump_to(DumpBuffer &out) const {
   dump_field(out, "name", this->name);
   dump_field(out, "total_seconds", this->total_seconds);
   dump_field(out, "seconds_left", this->seconds_left);
+  dump_field(out, "is_active", this->is_active);
+  return out.c_str();
+}
+const char *VoiceAssistantAlarmEventResponse::dump_to(DumpBuffer &out) const {
+  MessageDumpHelper helper(out, "VoiceAssistantAlarmEventResponse");
+  dump_field(out, "event_type", static_cast<enums::VoiceAssistantAlarmEvent>(this->event_type));
+  dump_field(out, "alarm_id", this->alarm_id);
+  dump_field(out, "name", this->name);
+  dump_field(out, "scheduled_epoch_s", this->scheduled_epoch_s);
+  dump_field(out, "seconds_until_ring", this->seconds_until_ring);
   dump_field(out, "is_active", this->is_active);
   return out.c_str();
 }
