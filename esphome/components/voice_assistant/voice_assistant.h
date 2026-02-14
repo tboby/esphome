@@ -41,6 +41,7 @@ enum VoiceAssistantFeature : uint32_t {
   FEATURE_TIMERS = 1 << 3,
   FEATURE_ANNOUNCE = 1 << 4,
   FEATURE_START_CONVERSATION = 1 << 5,
+  FEATURE_ALARM_CLOCKS = 1 << 6,
 };
 
 enum class State {
@@ -87,6 +88,25 @@ struct Timer {
     return this->to_str(buffer);
   }
 };
+
+struct Alarm {
+  std::string id;
+  std::string name;
+  uint32_t scheduled_epoch_s;
+  uint32_t seconds_until_ring;
+  bool is_active;
+
+  /// Buffer size for to_str() - sufficient for typical timer names
+  static constexpr size_t TO_STR_BUFFER_SIZE = 128;
+  /// Format to buffer, returns pointer to buffer (may truncate long names)
+  const char *to_str(std::span<char, TO_STR_BUFFER_SIZE> buffer) const {
+    snprintf(buffer.data(), buffer.size(),
+             "Timer(id=%s, name=%s, total_seconds=%" PRIu32 ", seconds_left=%" PRIu32 ", is_active=%s)",
+             this->id.c_str(), this->name.c_str(), this->total_seconds, this->seconds_left, YESNO(this->is_active));
+    return buffer.data();
+  }
+};
+
 
 struct WakeWord {
   std::string id;
@@ -160,6 +180,10 @@ class VoiceAssistant : public Component {
       flags |= VoiceAssistantFeature::FEATURE_TIMERS;
     }
 
+    if (this->has_alarms_) {
+      flags |= VoiceAssistantFeature::FEATURE_ALARM_CLOCKS;
+    }
+
 #ifdef USE_MEDIA_PLAYER
     if (this->media_player_ != nullptr) {
       flags |= VoiceAssistantFeature::FEATURE_ANNOUNCE;
@@ -176,6 +200,7 @@ class VoiceAssistant : public Component {
   void on_event(const api::VoiceAssistantEventResponse &msg);
   void on_audio(const api::VoiceAssistantAudio &msg);
   void on_timer_event(const api::VoiceAssistantTimerEventResponse &msg);
+  void on_alarm_event(const api::VoiceAssistantAlarmEventResponse &msg);
   void on_announce(const api::VoiceAssistantAnnounceRequest &msg);
   void on_set_configuration(const std::vector<std::string> &active_wake_words);
   const Configuration &get_configuration();
@@ -229,6 +254,15 @@ class VoiceAssistant : public Component {
   void set_has_timers(bool has_timers) { this->has_timers_ = has_timers; }
   const std::vector<Timer> &get_timers() const { return this->timers_; }
 
+  Trigger<Alarm> *get_alarm_started_trigger() { return &this->alarm_started_trigger_; }
+  Trigger<Alarm> *get_alarm_updated_trigger() { return &this->alarm_updated_trigger_; }
+  Trigger<Alarm> *get_alarm_cancelled_trigger() { return &this->alarm_cancelled_trigger_; }
+  Trigger<Alarm> *get_alarm_finished_trigger() { return &this->alarm_finished_trigger_; }
+  Trigger<const std::vector<Alarm> &> *get_alarm_tick_trigger() { return &this->alarm_tick_trigger_; }
+  void set_has_alarms(bool has_alarms) { this->has_alarms_ = has_alarms; }
+  const std::vector<Alarm> &get_alarms() const { return this->alarms_; }
+
+
  protected:
   bool allocate_buffers_();
   void clear_buffers_();
@@ -275,6 +309,16 @@ class VoiceAssistant : public Component {
   Trigger<const std::vector<Timer> &> timer_tick_trigger_;
   bool has_timers_{false};
   bool timer_tick_running_{false};
+
+  std::vector<Alarm> alarms_;
+  void alarm_tick_();
+  Trigger<Alarm> alarm_started_trigger_;
+  Trigger<Alarm> alarm_finished_trigger_;
+  Trigger<Alarm> alarm_updated_trigger_;
+  Trigger<Alarm> alarm_cancelled_trigger_;
+  Trigger<const std::vector<Alarm> &> alarm_tick_trigger_;
+  bool has_alarms_{false};
+  bool alarm_tick_running_{false};
 
   microphone::MicrophoneSource *mic_source_{nullptr};
 #ifdef USE_SPEAKER

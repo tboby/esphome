@@ -1200,6 +1200,11 @@ void APIConnection::on_voice_assistant_timer_event_response(const VoiceAssistant
     voice_assistant::global_voice_assistant->on_timer_event(msg);
   }
 };
+void APIConnection::on_voice_assistant_alarm_event_response(const VoiceAssistantAlarmEventResponse &msg) {
+  if (this->check_voice_assistant_api_connection_()) {
+    voice_assistant::global_voice_assistant->on_alarm_event(msg);
+  }
+};
 
 void APIConnection::on_voice_assistant_announce_request(const VoiceAssistantAnnounceRequest &msg) {
   if (this->check_voice_assistant_api_connection_()) {

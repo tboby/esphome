@@ -53,6 +53,11 @@ CONF_ON_TIMER_CANCELLED = "on_timer_cancelled"
 CONF_ON_TIMER_FINISHED = "on_timer_finished"
 CONF_ON_TIMER_TICK = "on_timer_tick"
 
+CONF_ON_ALARM_STARTED = "on_alarm_started"
+CONF_ON_ALARM_UPDATED = "on_alarm_updated"
+CONF_ON_ALARM_CANCELLED = "on_alarm_cancelled"
+CONF_ON_ALARM_FINISHED = "on_alarm_finished"
+CONF_ON_ALARM_TICK = "on_alarm_tick"
 
 voice_assistant_ns = cg.esphome_ns.namespace("voice_assistant")
 VoiceAssistant = voice_assistant_ns.class_("VoiceAssistant", cg.Component)
@@ -74,7 +79,7 @@ ConnectedCondition = voice_assistant_ns.class_(
 )
 
 Timer = voice_assistant_ns.struct("Timer")
-
+Alarm = voice_assistant_ns.struct("Alarm")
 
 def tts_stream_validate(config):
     if CONF_SPEAKER not in config and (
@@ -171,6 +176,17 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_ON_TIMER_TICK): automation.validate_automation(
                 single=True
             ),
+            cv.Optional(CONF_ON_ALARM_STARTED): automation.validate_automation(
+                single=True
+            ),
+            cv.Optional(CONF_ON_ALARM_UPDATED): automation.validate_automation(
+                single=True            ),
+            cv.Optional(CONF_ON_ALARM_CANCELLED): automation.validate_automation(
+                single=True           ),
+            cv.Optional(CONF_ON_ALARM_FINISHED): automation.validate_automation(
+                single=True            ),
+            cv.Optional(CONF_ON_ALARM_TICK): automation.validate_automation(
+                single=True            ),
         }
     ).extend(cv.COMPONENT_SCHEMA),
     tts_stream_validate,
@@ -382,6 +398,54 @@ async def to_code(config):
         has_timers = True
 
     cg.add(var.set_has_timers(has_timers))
+
+    has_alarms = False
+    if on_alarm_started := config.get(CONF_ON_ALARM_STARTED):
+        await automation.build_automation(
+            var.get_alarm_started_trigger(),
+            [(Timer, "timer")],
+            on_alarm_started,
+        )
+        has_alarms = True
+
+    if on_alarm_updated := config.get(CONF_ON_ALARM_UPDATED):
+        await automation.build_automation(
+            var.get_alarm_updated_trigger(),
+            [(Timer, "timer")],
+            on_alarm_updated,
+        )
+        has_alarms = True
+
+    if on_alarm_cancelled := config.get(CONF_ON_ALARM_CANCELLED):
+        await automation.build_automation(
+            var.get_alarm_cancelled_trigger(),
+            [(Timer, "timer")],
+            on_alarm_cancelled,
+        )
+        has_alarms = True
+
+    if on_alarm_finished := config.get(CONF_ON_ALARM_FINISHED):
+        await automation.build_automation(
+            var.get_alarm_finished_trigger(),
+            [(Timer, "timer")],
+            on_alarm_finished,
+        )
+        has_alarms = True
+
+    if on_alarm_tick := config.get(CONF_ON_ALARM_TICK):
+        await automation.build_automation(
+            var.get_alarm_tick_trigger(),
+            [
+                (
+                    cg.std_vector.template(Timer).operator("const").operator("ref"),
+                    "timers",
+                )
+            ],
+            on_alarm_tick,
+        )
+        has_alarms = True
+
+    cg.add(var.set_has_alarms(has_alarms))
 
     cg.add_define("USE_VOICE_ASSISTANT")
 
