@@ -253,13 +253,13 @@ class VoiceAssistant : public Component {
   void set_has_timers(bool has_timers) { this->has_timers_ = has_timers; }
   const std::unordered_map<std::string, Timer> &get_timers() const { return this->timers_; }
 
-  Trigger<Alarm> *get_alarm_started_trigger() { return &this->alarm_started_trigger_; }
-  Trigger<Alarm> *get_alarm_updated_trigger() { return &this->alarm_updated_trigger_; }
-  Trigger<Alarm> *get_alarm_cancelled_trigger() { return &this->alarm_cancelled_trigger_; }
-  Trigger<Alarm> *get_alarm_finished_trigger() { return &this->alarm_finished_trigger_; }
-  Trigger<const std::vector<Alarm> &> *get_alarm_tick_trigger() { return &this->alarm_tick_trigger_; }
+  Trigger<Alarm> *get_alarm_started_trigger() const { return this->alarm_started_trigger_; }
+  Trigger<Alarm> *get_alarm_updated_trigger() const { return this->alarm_updated_trigger_; }
+  Trigger<Alarm> *get_alarm_cancelled_trigger() const { return this->alarm_cancelled_trigger_; }
+  Trigger<Alarm> *get_alarm_finished_trigger() const { return this->alarm_finished_trigger_; }
+  Trigger<std::vector<Alarm>> *get_alarm_tick_trigger() const { return this->alarm_tick_trigger_; }
   void set_has_alarms(bool has_alarms) { this->has_alarms_ = has_alarms; }
-  const std::vector<Alarm> &get_alarms() const { return this->alarms_; }
+  const std::unordered_map<std::string, Alarm> &get_alarms() const { return this->alarms_; }
 
  protected:
   bool allocate_buffers_();
@@ -308,13 +308,13 @@ class VoiceAssistant : public Component {
   bool has_timers_{false};
   bool timer_tick_running_{false};
 
-  std::vector<Alarm> alarms_;
+  std::unordered_map<std::string, Alarm> alarms_;
   void alarm_tick_();
-  Trigger<Alarm> alarm_started_trigger_;
-  Trigger<Alarm> alarm_finished_trigger_;
-  Trigger<Alarm> alarm_updated_trigger_;
-  Trigger<Alarm> alarm_cancelled_trigger_;
-  Trigger<const std::vector<Alarm> &> alarm_tick_trigger_;
+  Trigger<Alarm> *alarm_started_trigger_ = new Trigger<Alarm>();
+  Trigger<Alarm> *alarm_finished_trigger_ = new Trigger<Alarm>();
+  Trigger<Alarm> *alarm_updated_trigger_ = new Trigger<Alarm>();
+  Trigger<Alarm> *alarm_cancelled_trigger_ = new Trigger<Alarm>();
+  Trigger<std::vector<Alarm>> *alarm_tick_trigger_ = new Trigger<std::vector<Alarm>>();
   bool has_alarms_{false};
   bool alarm_tick_running_{false};
 

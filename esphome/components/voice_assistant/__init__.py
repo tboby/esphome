@@ -435,12 +435,7 @@ async def to_code(config):
     if on_alarm_tick := config.get(CONF_ON_ALARM_TICK):
         await automation.build_automation(
             var.get_alarm_tick_trigger(),
-            [
-                (
-                    cg.std_vector.template(Alarm).operator("const").operator("ref"),
-                    "alarms",
-                )
-            ],
+            [(cg.std_vector.template(Alarm), "alarms")],
             on_alarm_tick,
         )
         has_alarms = True

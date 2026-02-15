@@ -914,43 +914,35 @@ void VoiceAssistant::timer_tick_() {
 }
 
 void VoiceAssistant::on_alarm_event(const api::VoiceAssistantAlarmEventResponse &msg) {
-  // Find existing alarm or add a new one
-  auto it = this->alarms_.begin();
-  for (; it != this->alarms_.end(); ++it) {
-    if (it->id == msg.alarm_id)
-      break;
-  }
-  if (it == this->alarms_.end()) {
-    this->alarms_.push_back({});
-    it = this->alarms_.end() - 1;
-  }
-  it->id = msg.alarm_id;
-  it->name = msg.name;
-  it->scheduled_epoch_s = msg.scheduled_epoch_s;
-  it->seconds_until_ring = msg.seconds_until_ring;
-  it->is_active = msg.is_active;
-
+  Alarm alarm = {
+      .id = msg.alarm_id,
+      .name = msg.name,
+      .scheduled_epoch_s = msg.scheduled_epoch_s,
+      .seconds_until_ring = msg.seconds_until_ring,
+      .is_active = msg.is_active,
+  };
+  this->alarms_[alarm.id] = alarm;
   char alarm_buf[Alarm::TO_STR_BUFFER_SIZE];
   ESP_LOGD(TAG,
            "Alarm Event\n"
            "  Type: %" PRId32 "\n"
            "  %s",
-           msg.event_type, it->to_str(alarm_buf));
+           msg.event_type, alarm.to_str(alarm_buf));
 
   switch (msg.event_type) {
     case api::enums::VOICE_ASSISTANT_ALARM_STARTED:
-      this->alarm_started_trigger_.trigger(*it);
+      this->alarm_started_trigger_->trigger(alarm);
       break;
     case api::enums::VOICE_ASSISTANT_ALARM_UPDATED:
-      this->alarm_updated_trigger_.trigger(*it);
+      this->alarm_updated_trigger_->trigger(alarm);
       break;
     case api::enums::VOICE_ASSISTANT_ALARM_CANCELLED:
-      this->alarm_cancelled_trigger_.trigger(*it);
-      this->alarms_.erase(it);
+      this->alarm_cancelled_trigger_->trigger(alarm);
+      this->alarms_.erase(alarm.id);
       break;
     case api::enums::VOICE_ASSISTANT_ALARM_FINISHED:
-      this->alarm_finished_trigger_.trigger(*it);
-      this->alarms_.erase(it);
+      this->alarm_finished_trigger_->trigger(alarm);
+      this->alarms_.erase(alarm.id);
       break;
   }
 
@@ -964,12 +956,16 @@ void VoiceAssistant::on_alarm_event(const api::VoiceAssistantAlarmEventResponse 
 }
 
 void VoiceAssistant::alarm_tick_() {
-  for (auto &alarm : this->alarms_) {
+  std::vector<Alarm> res;
+  res.reserve(this->alarms_.size());
+  for (auto &pair : this->alarms_) {
+    auto &alarm = pair.second;
     if (alarm.is_active && alarm.seconds_until_ring > 0) {
       alarm.seconds_until_ring--;
     }
+    res.push_back(alarm);
   }
-  this->alarm_tick_trigger_.trigger(this->alarms_);
+  this->alarm_tick_trigger_->trigger(res);
 }
 
 void VoiceAssistant::on_announce(const api::VoiceAssistantAnnounceRequest &msg) {
